@@ -178,8 +178,8 @@ class MentorGraphSaver(GraphSaver):
         seen = defaultdict(set)
         edges = cls.get_edges(history)
         for person, a, b in edges:
-            # if person in seen[(a, b)]:
-            #     continue
+            if person in seen[(a, b)]:
+                continue
 
             seen[(a, b)].add(person)
             weights[(a, b)] += 1
