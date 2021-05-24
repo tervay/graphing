@@ -5,6 +5,7 @@ from typing import Dict, List, Set, Tuple, Union
 
 import matplotlib.pyplot as plt
 import networkx as nx
+from tqdm import tqdm
 
 
 def create_dir_if_not_exists(name: str):
@@ -43,7 +44,7 @@ class GraphSaver:
 
     def save(self):
         self.save_graphviz()
-        # self.save_dotfiles()
+        self.save_dotfiles()
         self.save_nxlayouts()
 
     def __save_posit(self, posit: dict, path: str):
@@ -78,14 +79,14 @@ class GraphSaver:
         }
         agraph = nx.nx_agraph.to_agraph(self.graph)
         for edge in agraph.edges():
-            edge_fixed = (int(edge[0]), int(edge[1]))
+            edge_fixed = (str(edge[0]), str(edge[1]))
             if edge_fixed in edge_labels:
                 edge.attr["label"] = edge_labels[edge_fixed]
 
-        for prog in self.progs:
+        for prog in tqdm(self.progs):
             posit = nx.nx_pydot.pydot_layout(self.graph, prog=prog)
-            self.__save_posit(posit, f"{self.base}/{self.name}/graphviz/{prog}.png")
-            agraph.draw(f"{self.base}/{self.name}/agraph/{prog}.png", prog=prog)
+            self.__save_posit(posit, f"{self.base}/{self.name}/graphviz/gv_{prog}.png")
+            agraph.draw(f"{self.base}/{self.name}/agraph/ag_{prog}.png", prog=prog)
 
     def save_dotfiles(self):
         create_dir_if_not_exists(f"{self.base}/{self.name}/dotfiles/")
@@ -94,7 +95,7 @@ class GraphSaver:
 
     def save_nxlayouts(self):
         create_dir_if_not_exists(f"{self.base}/{self.name}/nxlayouts/")
-        for layout_fn in self.layouts:
+        for layout_fn in tqdm(self.layouts):
             kwargs = {}
             if layout_fn == nx.spring_layout:
                 kwargs["k"] = 10 * 1 / math.sqrt(self.graph.order())
@@ -102,7 +103,7 @@ class GraphSaver:
             try:
                 pos = layout_fn(self.graph, **kwargs)
                 self.__save_posit(
-                    pos, f"{self.base}/{self.name}/nxlayouts/{layout_fn.__name__}.png"
+                    pos, f"{self.base}/{self.name}/nxlayouts/nx_{layout_fn.__name__}.png"
                 )
             except nx.NetworkXException:
                 pass
@@ -151,7 +152,7 @@ class MentorGraphSaver(GraphSaver):
         for _, team_history in history.items():
             for moment in team_history:
                 for team in moment:
-                    l.add(team)
+                    l.add(str(team))
 
         return l
 
@@ -168,7 +169,7 @@ class MentorGraphSaver(GraphSaver):
                         if team_a == team_b:
                             continue
 
-                        edges.append((person, team_a, team_b))
+                        edges.append((person, str(team_a), str(team_b)))
 
         return edges
 
